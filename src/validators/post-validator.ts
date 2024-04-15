@@ -1,6 +1,7 @@
 import { body } from "express-validator";
 import { inputValidationMiddleware } from "../middleweares/input-validation/input-validation-middleware";
 import { BlogQueryRepository } from "../repositories/blogQueryRepository";
+import { LikeStatus } from "../models/comments";
 
 const titleValidator = body("title")
   .trim()
@@ -51,5 +52,14 @@ export const postInBlogValidation = () => [
 
 export const contentValidation = () => [
   contenetJWTValidator,
+  inputValidationMiddleware,
+];
+
+const likeStatusValidator = body("likeStatus")
+  .isIn(Object.values(LikeStatus))
+  .withMessage("incorrect likeStatus");
+
+export const likesValidation = () => [
+  likeStatusValidator,
   inputValidationMiddleware,
 ];

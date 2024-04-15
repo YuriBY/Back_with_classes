@@ -16,6 +16,12 @@ export type InputObjForComment = {
 //   createdAt: string;
 // };
 
+export enum LikeStatus {
+  None = "None",
+  Like = "Like",
+  Dislike = "Dislike",
+}
+
 export class CommentDBType {
   constructor(
     public _id: string,
@@ -25,9 +31,18 @@ export class CommentDBType {
       userLogin: string;
       postId: string;
     },
-    public createdAt: string
+    public createdAt: string,
+    public likes: LikeSchemaType[],
+    public likesCount: number,
+    public dislikesCount: number
   ) {}
 }
+
+export type LikeSchemaType = {
+  createdAt: Date;
+  status: LikeStatus;
+  authorId: string;
+};
 
 export type CommentOutType = {
   id: string;

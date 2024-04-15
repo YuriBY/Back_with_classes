@@ -1,6 +1,9 @@
 import { Router, Response } from "express";
 import { authJWTMiddlewear } from "../middleweares/auth/authJWTmiddlewear";
-import { contentValidation } from "../validators/post-validator";
+import {
+  contentValidation,
+  likesValidation,
+} from "../validators/post-validator";
 import { commentsController } from "../composition-root";
 
 export const commentsRoute = Router({});
@@ -21,4 +24,11 @@ commentsRoute.delete(
   "/:id",
   authJWTMiddlewear,
   commentsController.deleteComment.bind(commentsController)
+);
+
+commentsRoute.put(
+  "/:id/like-status",
+  authJWTMiddlewear,
+  likesValidation(),
+  commentsController.addLikeStatus.bind(commentsController)
 );

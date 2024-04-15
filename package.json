@@ -40,5 +40,7 @@
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
-  }
+  },
+  "repository": "https://github.com/YuriBY/Back_with_classes.git",
+  "author": "YuriBY <vv0325056@gmail.com>"
 }

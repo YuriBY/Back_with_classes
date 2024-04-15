@@ -2,6 +2,7 @@ import { Response } from "express";
 import { HTTP_STATUS } from "../status/status1";
 import {
   Content,
+  LikeStatusType,
   ParamType,
   RequestWithBodyAndParams,
   RequestWithParams,
@@ -85,6 +86,30 @@ export class CommentController {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
     } else if (commentIsDeleted.code === 403) {
       res.sendStatus(HTTP_STATUS.FORBIDDEN_403);
+    } else {
+      res.sendStatus(HTTP_STATUS.NO_CONTENT_204);
+    }
+  }
+
+  async addLikeStatus(
+    req: RequestWithBodyAndParams<ParamType, LikeStatusType>,
+    res: Response
+  ) {
+    const id = req.params.id;
+    const isValidUUID = require("uuid-validate");
+    if (!isValidUUID(id)) {
+      res.sendStatus(HTTP_STATUS.BAD_REQUEST_400);
+      return;
+    }
+    const likeStatus = req.body.likeStatus;
+
+    const foundedComment = await this.commentService.updateLikesContent(
+      id,
+      likeStatus,
+      req.user!._id
+    );
+    if (foundedComment?.code === 404) {
+      res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
     } else {
       res.sendStatus(HTTP_STATUS.NO_CONTENT_204);
     }

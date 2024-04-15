@@ -8,7 +8,7 @@ import { PostDBType } from "./../models/postType";
 import { MongoClient } from "mongodb";
 import { UserAccountDBType } from "../models/usersType";
 import { appConfig } from "../common/config/appConfi";
-import { CommentDBType } from "../models/comments";
+import { CommentDBType, LikeSchemaType, LikeStatus } from "../models/comments";
 // import { scheduleNextTuesdayEvent } from "../application/clenerOfBlackList";
 import mongoose from "mongoose";
 
@@ -70,6 +70,12 @@ export const UsersModel = mongoose.model("users", userSchema);
 // export const commentsCollection = client
 //   .db()
 //   .collection<CommentDBType>("comments");
+const likesSchema = new mongoose.Schema<LikeSchemaType>({
+  createdAt: { type: Date, required: true },
+  status: { type: String, enum: ["None", "Like", "Dislike"], required: true },
+  authorId: { type: String, required: true },
+});
+
 const commentSchema = new mongoose.Schema<CommentDBType>({
   _id: String,
   content: String,
@@ -79,6 +85,9 @@ const commentSchema = new mongoose.Schema<CommentDBType>({
     postId: String,
   },
   createdAt: String,
+  likes: [likesSchema],
+  likesCount: { type: Number, required: true },
+  dislikesCount: { type: Number, required: true },
 });
 
 export const CommentsModel = mongoose.model("comments", commentSchema);

@@ -44,7 +44,10 @@ export class CommentService {
       crypto.randomUUID(),
       content,
       { userId, userLogin, postId },
-      new Date().toISOString()
+      new Date().toISOString(),
+      [],
+      0,
+      0
     );
 
     const createdComment = await this.commentRepository.createComment(
@@ -91,6 +94,69 @@ export class CommentService {
     return {
       code: HTTP_STATUS.NO_CONTENT_204,
     };
+  }
+
+  async updateLikesContent(
+    commentId: string,
+    likeStatus: string,
+    userId: string
+  ) {
+    const foundedComment: CommentDBType | Result =
+      await this.commentsQueryRepository.findDbTypeById(commentId);
+    if ("code" in foundedComment) {
+      return {
+        code: HTTP_STATUS.NOT_FOUND_404,
+      };
+    }
+    const likeInfo = foundedComment.likes.find(
+      (like) => like.authorId === userId
+    );
+    if (likeInfo === undefined) {
+      const result = await this.commentRepository.updateCommentLikes(
+        commentId,
+        likeStatus,
+        userId
+      );
+      return {
+        code: HTTP_STATUS.NO_CONTENT_204,
+      };
+    } else {
+      if (likeInfo!.status === likeStatus) {
+        return {
+          code: HTTP_STATUS.NO_CONTENT_204,
+        };
+      }
+
+      if (likeInfo!.status === "None" && likeStatus === "Like") {
+        await this.commentRepository.increaseLikes(commentId);
+        return {
+          code: HTTP_STATUS.NO_CONTENT_204,
+        };
+      }
+
+      if (likeInfo!.status === "None" && likeStatus === "Dislike") {
+        await this.commentRepository.increaseDislikes(commentId);
+        return {
+          code: HTTP_STATUS.NO_CONTENT_204,
+        };
+      }
+
+      if (likeInfo!.status === "Like" && likeStatus === "Dislike") {
+        await this.commentRepository.increaseDislikes(commentId);
+        await this.commentRepository.reduceLikes(commentId);
+        return {
+          code: HTTP_STATUS.NO_CONTENT_204,
+        };
+      }
+
+      if (likeInfo!.status === "Dislike" && likeStatus === "Like") {
+        await this.commentRepository.reduceDislikes(commentId);
+        await this.commentRepository.increaseLikes(commentId);
+        return {
+          code: HTTP_STATUS.NO_CONTENT_204,
+        };
+      }
+    }
   }
 }
 

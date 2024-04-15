@@ -1,3 +1,4 @@
+import { LikeStatus } from "./comments";
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 
@@ -59,4 +60,8 @@ export type DevicesOutType = {
   title: string;
   lastActiveDate: string;
   deviceId: string;
+};
+
+export type LikeStatusType = {
+  likeStatus: LikeStatus;
 };
