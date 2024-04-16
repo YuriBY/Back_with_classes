@@ -29,7 +29,7 @@ export class CommentController {
       return;
     }
     const comment = await this.commentService.commentsQueryRepository.getById(
-      req.params.id
+      req.params.id, req.user!._id
     );
     // commentsQueryRepository.getById(req.params.id);
 
@@ -106,7 +106,7 @@ export class CommentController {
     const foundedComment = await this.commentService.updateLikesContent(
       id,
       likeStatus,
-      req.user!._id
+      req.user?._id
     );
     if (foundedComment?.code === 404) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);

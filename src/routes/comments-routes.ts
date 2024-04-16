@@ -5,11 +5,13 @@ import {
   likesValidation,
 } from "../validators/post-validator";
 import { commentsController } from "../composition-root";
+import { accessTokenMiddlewear } from "../middleweares/auth/accessTokenMiddlewear";
 
 export const commentsRoute = Router({});
 
 commentsRoute.get(
   "/:id",
+  authJWTMiddlewear,
   commentsController.getComment.bind(commentsController)
 );
 
@@ -28,7 +30,7 @@ commentsRoute.delete(
 
 commentsRoute.put(
   "/:id/like-status",
-  authJWTMiddlewear,
+  accessTokenMiddlewear,
   likesValidation(),
   commentsController.addLikeStatus.bind(commentsController)
 );

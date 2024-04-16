@@ -10,6 +10,7 @@ export type RequestWithQuery<Q> = Request<{}, {}, {}, Q>;
 export type RequestWithBody<T> = Request<{}, {}, T, {}>;
 export type RequestWithBodyAndParams<P, T> = Request<P, {}, T, {}>;
 export type RequestWithQueryAndParams<P, Q> = Request<P, {}, {}, Q>;
+
 export type ResponseType<T> = Response<T, {}>;
 
 export type Pagination<I> = {

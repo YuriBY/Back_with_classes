@@ -5,6 +5,7 @@ import {
   CommentDBType,
   CommentOutType,
   InputObjForComment,
+  LikeStatus,
   objForCommentDelete,
   objForCommentUpdate,
 } from "../models/comments";
@@ -99,7 +100,7 @@ export class CommentService {
   async updateLikesContent(
     commentId: string,
     likeStatus: string,
-    userId: string
+    userId: string | undefined
   ) {
     const foundedComment: CommentDBType | Result =
       await this.commentsQueryRepository.findDbTypeById(commentId);
@@ -108,55 +109,75 @@ export class CommentService {
         code: HTTP_STATUS.NOT_FOUND_404,
       };
     }
-    const likeInfo = foundedComment.likes.find(
+    if (!userId) {
+      const result = await this.commentRepository.addAnonimLikes(
+        commentId,
+        likeStatus,
+      );
+      return {
+        code: HTTP_STATUS.NO_CONTENT_204,
+      };
+    }
+
+    //попадаем сюда только в случае, если комментарий нашелся
+    // дальше проверяем свойство likes. 
+    let likeInfo = foundedComment.likes.find(
       (like) => like.authorId === userId
     );
-    if (likeInfo === undefined) {
-      const result = await this.commentRepository.updateCommentLikes(
+    // Если массив пуст или отсуствует сведения о лайке от определенного автора, то вернется undefined
+    if (!likeInfo) {
+      const result = await this.commentRepository.updateLikes(
         commentId,
         likeStatus,
         userId
       );
       return {
         code: HTTP_STATUS.NO_CONTENT_204,
-      };
+      }; //дальше рассматриваем случай, когда находится элемент по автору
     } else {
-      if (likeInfo!.status === likeStatus) {
+      if (likeInfo!.status === likeStatus) { //если повторно пришел тот же статус, то ничего не делаем
         return {
           code: HTTP_STATUS.NO_CONTENT_204,
         };
       }
 
-      if (likeInfo!.status === "None" && likeStatus === "Like") {
-        await this.commentRepository.increaseLikes(commentId);
+      if (likeInfo.status !== likeStatus && likeStatus === LikeStatus.Like) {
+        await this.commentRepository.increaseLikes(commentId);        
+        if (likeInfo.status === LikeStatus.Dislike) {
+          await this.commentRepository.reduceDislikes(commentId)
+        }
+        likeInfo.status = likeStatus
         return {
           code: HTTP_STATUS.NO_CONTENT_204,
         };
       }
 
-      if (likeInfo!.status === "None" && likeStatus === "Dislike") {
+      if (likeInfo.status !== likeStatus && likeStatus === LikeStatus.Dislike) {
         await this.commentRepository.increaseDislikes(commentId);
+        if (likeInfo.status === LikeStatus.Like) {
+          await this.commentRepository.reduceLikes(commentId)
+        }
+        likeInfo.status = likeStatus
         return {
           code: HTTP_STATUS.NO_CONTENT_204,
         };
       }
 
-      if (likeInfo!.status === "Like" && likeStatus === "Dislike") {
-        await this.commentRepository.increaseDislikes(commentId);
-        await this.commentRepository.reduceLikes(commentId);
-        return {
-          code: HTTP_STATUS.NO_CONTENT_204,
-        };
-      }
-
-      if (likeInfo!.status === "Dislike" && likeStatus === "Like") {
-        await this.commentRepository.reduceDislikes(commentId);
-        await this.commentRepository.increaseLikes(commentId);
+      if (likeInfo.status !== likeStatus && likeStatus === LikeStatus.None) {
+        if (likeInfo.status === LikeStatus.Like) {
+          await this.commentRepository.reduceLikes(commentId)
+        } else {
+          await this.commentRepository.reduceDislikes(commentId)
+        }
+        likeInfo.status = likeStatus
         return {
           code: HTTP_STATUS.NO_CONTENT_204,
         };
       }
     }
+    return {
+      code: HTTP_STATUS.NO_CONTENT_204,
+    };
   }
 }
 

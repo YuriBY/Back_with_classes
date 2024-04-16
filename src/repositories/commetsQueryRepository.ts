@@ -4,6 +4,7 @@ import {
   CommentDBType,
   CommentOutType,
   CommentsQueryInputType,
+  LikeStatus,
 } from "../models/comments";
 import { Result } from "../models/resultTypes";
 import { HTTP_STATUS } from "../status/status1";
@@ -11,7 +12,8 @@ import { HTTP_STATUS } from "../status/status1";
 export class CommentsQueryRepository {
   async getAllComments(
     postId: string,
-    sortData: CommentsQueryInputType
+    sortData: CommentsQueryInputType,
+    userId: string | undefined
   ): Promise<Pagination<CommentOutType>> {
     const { sortBy, sortDirection, pageNumber, pageSize } = sortData;
     let filter = {
@@ -36,23 +38,33 @@ export class CommentsQueryRepository {
         items: [],
       };
 
-    return {
-      pagesCount,
-      pageSize,
-      page: pageNumber,
-      totalCount,
-      items: result.map(({ _id, commentatorInfo, ...rest }) => ({
-        id: _id,
-        commentatorInfo: {
-          userId: commentatorInfo.userId,
-          userLogin: commentatorInfo.userLogin,
-        },
-        ...rest,
-      })),
-    };
+      return {
+        pagesCount,
+        pageSize,
+        page: pageNumber,
+        totalCount,
+        items: result.map(({ _id, commentatorInfo, likes, likesCount, dislikesCount, ...rest }) => {
+          const myStatus = likes.find(like => like.authorId === userId)?.status || LikeStatus.None;
+      
+          return {
+            id: _id,
+            commentatorInfo: {
+              userId: commentatorInfo.userId,
+              userLogin: commentatorInfo.userLogin,
+            },
+            likesInfo: {
+              likesCount: likesCount,
+              dislikesCount: dislikesCount,
+              myStatus: myStatus,
+            },
+            ...rest,
+          };
+        }),
+      };
+      
   }
-
-  commentMapper(comment: CommentDBType): CommentOutType {
+  
+  commentMapper(comment: CommentDBType, userId?: string): CommentOutType {
     return {
       id: comment._id,
       content: comment.content,
@@ -61,15 +73,20 @@ export class CommentsQueryRepository {
         userLogin: comment.commentatorInfo.userLogin,
       },
       createdAt: comment.createdAt,
+      likesInfo: {
+        likesCount: comment.likesCount,
+        dislikesCount: comment.dislikesCount,
+        myStatus: comment.likes.find((like) => like.authorId === userId)?.status || LikeStatus.None
+      }
     };
   }
 
-  async getById(id: string): Promise<CommentOutType | null> {
+  async getById(commentId: string, userId: string ): Promise<CommentOutType | null> {
     const result: CommentDBType | null = await CommentsModel.findOne({
-      _id: id,
+      _id: commentId,
     });
     if (!result) return null;
-    return this.commentMapper(result);
+    return this.commentMapper(result, userId);
   }
 
   async findDbTypeById(id: string): Promise<CommentDBType | Result> {

@@ -40,7 +40,7 @@ export class CommentDBType {
 
 export type LikeSchemaType = {
   createdAt: Date;
-  status: LikeStatus;
+  status: LikeStatus.None | LikeStatus.Like | LikeStatus.Dislike;
   authorId: string;
 };
 
@@ -52,6 +52,11 @@ export type CommentOutType = {
     userLogin: string;
   };
   createdAt: string;
+  likesInfo: {
+    likesCount: number,
+    dislikesCount: number,
+    myStatus: LikeStatus.None | LikeStatus.Like | LikeStatus.Dislike
+  }
 };
 
 export type CommentsQueryInputType = {

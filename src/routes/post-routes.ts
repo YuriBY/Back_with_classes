@@ -6,6 +6,7 @@ import {
 } from "../validators/post-validator";
 import { authJWTMiddlewear } from "../middleweares/auth/authJWTmiddlewear";
 import { postController } from "../composition-root";
+import { accessTokenMiddlewear } from "../middleweares/auth/accessTokenMiddlewear";
 
 export const postRoute = Router({});
 
@@ -40,4 +41,4 @@ postRoute.post(
   postController.createComment.bind(postController)
 );
 
-postRoute.get("/:id/comments", postController.getComments.bind(postController));
+postRoute.get("/:id/comments", accessTokenMiddlewear, postController.getComments.bind(postController));

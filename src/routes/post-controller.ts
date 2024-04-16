@@ -133,7 +133,8 @@ export class PostController {
     const commentsToPost: Pagination<CommentOutType> =
       await this.commentService.commentsQueryRepository.getAllComments(
         req.params.id,
-        sortData
+        sortData,
+        req.user?._id
       );
     if (commentsToPost.items.length == 0) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
