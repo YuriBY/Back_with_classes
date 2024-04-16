@@ -29,7 +29,8 @@ export class CommentController {
       return;
     }
     const comment = await this.commentService.commentsQueryRepository.getById(
-      req.params.id, req.user!._id
+      req.params.id,
+      req.user!._id
     );
     // commentsQueryRepository.getById(req.params.id);
 
@@ -95,6 +96,8 @@ export class CommentController {
     req: RequestWithBodyAndParams<ParamType, LikeStatusType>,
     res: Response
   ) {
+    console.log("333");
+
     const id = req.params.id;
     const isValidUUID = require("uuid-validate");
     if (!isValidUUID(id)) {

@@ -86,8 +86,8 @@ const commentSchema = new mongoose.Schema<CommentDBType>({
   },
   createdAt: String,
   likes: [likesSchema],
-  likesCount: { type: Number, required: true },
-  dislikesCount: { type: Number, required: true },
+  likesCount: { type: Number },
+  dislikesCount: { type: Number },
 });
 
 export const CommentsModel = mongoose.model("comments", commentSchema);

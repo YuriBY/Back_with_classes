@@ -4,8 +4,7 @@ import { appConfig } from "../common/config/appConfi";
 import { v4 as uuidv4 } from "uuid";
 import { DevicesDbType } from "../models/commonTypes";
 import { ObjectId } from "mongodb";
-import { addMinutes, addSeconds } from "date-fns";
-import { jwtQueryRepository } from "../repositories/jwtQueryRepository";
+import { addMinutes } from "date-fns";
 import { deviceRepository } from "../repositories/deviceRepository";
 
 const JWT_SECRET_A = appConfig.SECRET_KEY;
@@ -71,7 +70,6 @@ export const jwtService = {
       expDate: expDate.toISOString(),
       userId: user._id,
     };
-    console.log("deviceData", deviceData);
 
     const result = await deviceRepository.addDevice(deviceData);
 

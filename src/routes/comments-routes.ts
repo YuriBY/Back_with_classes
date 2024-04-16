@@ -11,7 +11,7 @@ export const commentsRoute = Router({});
 
 commentsRoute.get(
   "/:id",
-  authJWTMiddlewear,
+  accessTokenMiddlewear,
   commentsController.getComment.bind(commentsController)
 );
 
