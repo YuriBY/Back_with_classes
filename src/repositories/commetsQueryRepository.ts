@@ -21,7 +21,7 @@ export class CommentsQueryRepository {
     };
 
     const result: CommentDBType[] = await CommentsModel.find(filter)
-      .sort({ sortBy: sortDirection })
+      .sort({ [sortBy]: sortDirection })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .lean();
@@ -43,21 +43,22 @@ export class CommentsQueryRepository {
         pageSize,
         page: pageNumber,
         totalCount,
-        items: result.map(({ _id, commentatorInfo, likes, likesCount, dislikesCount, ...rest }) => {
+        items: result.map(({ _id, content, commentatorInfo, createdAt, likes, likesCount, dislikesCount}) => {
           const myStatus = likes.find(like => like.authorId === userId)?.status || LikeStatus.None;
       
           return {
             id: _id,
+            content: content,
             commentatorInfo: {
               userId: commentatorInfo.userId,
               userLogin: commentatorInfo.userLogin,
             },
+            createdAt: createdAt,
             likesInfo: {
               likesCount: likesCount,
               dislikesCount: dislikesCount,
               myStatus: myStatus,
-            },
-            ...rest,
+            },           
           };
         }),
       };
@@ -81,7 +82,7 @@ export class CommentsQueryRepository {
     };
   }
 
-  async getById(commentId: string, userId: string ): Promise<CommentOutType | null> {
+  async getById(commentId: string, userId?: string | undefined ): Promise<CommentOutType | null> {
     const result: CommentDBType | null = await CommentsModel.findOne({
       _id: commentId,
     });

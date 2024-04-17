@@ -40,6 +40,7 @@ export class BlogController {
     );
     if (blog) {
       res.send(blog);
+      return
     } else {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
     }

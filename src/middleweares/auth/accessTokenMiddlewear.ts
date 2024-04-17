@@ -1,11 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtService } from "../../application/jwt-service";
 import { userService } from "../../services/user-service";
-import { ParamType, RequestWithQueryAndParams } from "../../models/commonTypes";
+import { ParamType, RequestWithParams, RequestWithQueryAndParams } from "../../models/commonTypes";
 import { CommentsQueryInputType } from "../../models/comments";
 
+export type RequestType<ParamType, QueryType> = 
+  QueryType extends undefined ? RequestWithParams<ParamType> : RequestWithQueryAndParams<ParamType, QueryType>;
+
+
 export const accessTokenMiddlewear = async (
-  req: RequestWithQueryAndParams<ParamType, CommentsQueryInputType>,
+  req: RequestType<ParamType, CommentsQueryInputType>,
   res: Response,
   next: NextFunction
 ) => {
@@ -17,6 +21,8 @@ export const accessTokenMiddlewear = async (
     if (userId) {
       req.user = await userService.findUserById(userId);
       next();
+      return
     }    
   }
+  next()
 };

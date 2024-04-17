@@ -52,6 +52,7 @@ export class PostController {
     const post = await this.postQueryRepository.getById(req.params.id);
     if (post) {
       res.send(post);
+      return
     } else {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
     }
@@ -77,6 +78,7 @@ export class PostController {
     const post = await this.postQueryRepository.getById(req.params.id);
     if (!post) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
+      return
     } else {
       const { title, shortDescription, content, blogId } = req.body;
       // const id = +req.params.id;
@@ -95,6 +97,7 @@ export class PostController {
     const post = await this.postQueryRepository.getById(req.params.id);
     if (!post) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
+      return
     } else {
       this.postService.deletePost(req.params.id);
       res.sendStatus(HTTP_STATUS.NO_CONTENT_204);

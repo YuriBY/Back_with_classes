@@ -30,7 +30,7 @@ commentsRoute.delete(
 
 commentsRoute.put(
   "/:id/like-status",
-  accessTokenMiddlewear,
+  authJWTMiddlewear,
   likesValidation(),
   commentsController.addLikeStatus.bind(commentsController)
 );

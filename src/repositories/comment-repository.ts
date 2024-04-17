@@ -21,7 +21,11 @@ export class CommentRepository {
   }
 
   async createComment(newComment: CommentDBType, userId?: string): Promise<CommentOutType> {
-    const result = await CommentsModel.insertMany({ newComment });
+    // console.log('qqqqq', newComment);
+    
+    const result = await CommentsModel.create(newComment);
+    // console.log('w', result);
+    
     return this.commentMapper(newComment, userId);
   }
 
@@ -55,16 +59,23 @@ export class CommentRepository {
         },
       },
     );
-   
+    console.log('r1', result);
+    
     if (result.matchedCount === 1) {
       const comment = await CommentsModel.findById(commentId);
+      
       if (comment) {
         if (likeStatus === "Like") {
-          comment.likesCount++;
+          const result = await CommentsModel.updateOne(
+            { _id: commentId },
+            { $inc: { likesCount: 1 } }
+          );
         } else if (likeStatus === "Dislike") {
-          comment.dislikesCount++;
-        }
-        await comment.save();
+          const result = await CommentsModel.updateOne(
+            { _id: commentId },
+            { $inc: { dislikesCount: 1 } }
+          );
+        }       
       }
     }
     return result.matchedCount === 1;
@@ -74,6 +85,8 @@ export class CommentRepository {
     commentId: string,
     likeStatus: string    
   ) {
+    console.log('a1', commentId, likeStatus);
+    
     const result = await CommentsModel.updateOne(
       { _id: commentId },
       {
@@ -86,55 +99,54 @@ export class CommentRepository {
         },
       },
     );
+   console.log('a2', result.modifiedCount);
    
-    if (result.matchedCount === 1) {
-      const comment = await CommentsModel.findById(commentId);
-      if (comment) {
-        if (likeStatus === "Like") {
-          comment.likesCount++;
-        } else if (likeStatus === "Dislike") {
-          comment.dislikesCount++;
-        }
-        await comment.save();
+    if (result.modifiedCount === 1) {
+      if (likeStatus === "Like") {
+        const result = await CommentsModel.updateOne(
+          { _id: commentId },
+          { $inc: { likesCount: 1 } }
+        );
+      } else if (likeStatus === "Dislike") {
+        const result = await CommentsModel.updateOne(
+          { _id: commentId },
+          { $inc: { dislikesCount: 1 } }
+        );
       }
     }
-    return result.matchedCount === 1;
+    return result.modifiedCount === 1;
   }
 
   async increaseLikes(commentId: string) {
-    const comment = await CommentsModel.findById(commentId);
-    if (comment) {
-      comment.likesCount++;
-      await comment.save();
-    }
+    const result = await CommentsModel.updateOne(
+      { _id: commentId },
+      { $inc: { likesCount: 1 } }
+    )
     return 1     
     }
   
 
   async reduceLikes(commentId: string) {
-    const comment = await CommentsModel.findById(commentId);
-    if (comment) {
-      comment.likesCount--;
-      await comment.save();
-    }
+    const result = await CommentsModel.updateOne(
+      { _id: commentId },
+      { $inc: { likesCount: -1 } }
+    );
       return 1;
     }
 
   async increaseDislikes(commentId: string) {
-    const comment = await CommentsModel.findById(commentId);
-    if (comment) {
-      comment.dislikesCount++;
-      await comment.save();
-    }
+    const result = await CommentsModel.updateOne(
+      { _id: commentId },
+      { $inc: { dislikesCount: 1 } }
+    );
       return 1;
     }
   
   async reduceDislikes(commentId: string) {
-    const comment = await CommentsModel.findById(commentId);
-    if (comment) {
-      comment.dislikesCount--;
-      await comment.save();
-    }
+    const result = await CommentsModel.updateOne(
+      { _id: commentId },
+      { $inc: { dislikesCount: -1 } }
+    );
       return 1;
     }
 }

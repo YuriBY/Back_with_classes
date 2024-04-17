@@ -14,6 +14,7 @@ import {
 } from "../models/comments";
 import { CommentService } from "../services/comment-service";
 import { Result } from "../models/resultTypes";
+import { log } from "console";
 
 export class CommentController {
   constructor(protected commentService: CommentService) {}
@@ -23,6 +24,8 @@ export class CommentController {
     res: Response<CommentOutType | {}>
   ) {
     const id = req.params.id;
+    console.log('id', id);
+    
     const isValidUUID = require("uuid-validate");
     if (!isValidUUID(id)) {
       res.sendStatus(HTTP_STATUS.BAD_REQUEST_400);
@@ -30,8 +33,10 @@ export class CommentController {
     }
     const comment = await this.commentService.commentsQueryRepository.getById(
       req.params.id,
-      req.user!._id
+      req.user?._id
     );
+    console.log('comm', comment);
+    
     // commentsQueryRepository.getById(req.params.id);
 
     if (!comment) {
@@ -62,8 +67,10 @@ export class CommentController {
 
     if (updatedComment.code === 404) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
+      return;
     } else if (updatedComment.code === 403) {
       res.sendStatus(HTTP_STATUS.FORBIDDEN_403);
+      return;
     } else {
       res.sendStatus(HTTP_STATUS.NO_CONTENT_204);
     }
@@ -85,10 +92,12 @@ export class CommentController {
     );
     if (commentIsDeleted.code === 404) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
+      return;
     } else if (commentIsDeleted.code === 403) {
       res.sendStatus(HTTP_STATUS.FORBIDDEN_403);
+      return;
     } else {
-      res.sendStatus(HTTP_STATUS.NO_CONTENT_204);
+      res.sendStatus(HTTP_STATUS.NO_CONTENT_204);      
     }
   }
 
@@ -96,25 +105,29 @@ export class CommentController {
     req: RequestWithBodyAndParams<ParamType, LikeStatusType>,
     res: Response
   ) {
-    console.log("333");
+    console.log("3333");
 
     const id = req.params.id;
-    const isValidUUID = require("uuid-validate");
-    if (!isValidUUID(id)) {
-      res.sendStatus(HTTP_STATUS.BAD_REQUEST_400);
-      return;
-    }
+    console.log('commentID', id);
+    
     const likeStatus = req.body.likeStatus;
-
+    console.log('a', likeStatus);
+    console.log('req.user.id', req.user?._id);
+    
     const foundedComment = await this.commentService.updateLikesContent(
       id,
       likeStatus,
       req.user?._id
     );
-    if (foundedComment?.code === 404) {
+    console.log('f', foundedComment);
+
+
+    if (foundedComment.code === 404) {
       res.sendStatus(HTTP_STATUS.NOT_FOUND_404);
+      return
     } else {
-      res.sendStatus(HTTP_STATUS.NO_CONTENT_204);
+      res.sendStatus(HTTP_STATUS.NO_CONTENT_204);      
     }
+   
   }
 }

@@ -2,6 +2,7 @@ import { body } from "express-validator";
 import { inputValidationMiddleware } from "../middleweares/input-validation/input-validation-middleware";
 import { BlogQueryRepository } from "../repositories/blogQueryRepository";
 import { LikeStatus } from "../models/comments";
+import { inputValidationCommentsMiddleware } from "../middleweares/input-validation/input-validation-for-comments";
 
 const titleValidator = body("title")
   .trim()
@@ -61,5 +62,5 @@ const likeStatusValidator = body("likeStatus")
 
 export const likesValidation = () => [
   likeStatusValidator,
-  inputValidationMiddleware,
+ inputValidationCommentsMiddleware,
 ];

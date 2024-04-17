@@ -13,6 +13,7 @@ import { PostQueryRepository } from "../repositories/postQueryrepository";
 import { CommentRepository } from "../repositories/comment-repository";
 import { CommentsQueryRepository } from "../repositories/commetsQueryRepository";
 import { Result } from "../models/resultTypes";
+import { CommentsModel } from "../repositories/db";
 
 export class CommentService {
   // commentRepository: CommentRepository;
@@ -50,6 +51,8 @@ export class CommentService {
       0,
       0
     );
+    // console.log('newComment', newComment);
+    
 
     const createdComment = await this.commentRepository.createComment(
       newComment
@@ -102,28 +105,37 @@ export class CommentService {
     likeStatus: string,
     userId: string | undefined
   ) {
+    console.log('u1', commentId);
+    
     const foundedComment: CommentDBType | Result =
       await this.commentsQueryRepository.findDbTypeById(commentId);
-    if ("code" in foundedComment) {
+      console.log('u', foundedComment);
+    
+    if ('code' in foundedComment) {
       return {
         code: HTTP_STATUS.NOT_FOUND_404,
       };
     }
+      
     if (!userId) {
       const result = await this.commentRepository.addAnonimLikes(
         commentId,
         likeStatus,
       );
+      console.log('res', result);
+      
       return {
         code: HTTP_STATUS.NO_CONTENT_204,
       };
     }
 
-    //попадаем сюда только в случае, если комментарий нашелся
+    //попадаем сюда только в случае, если есть лайкнул авторизированный пользователь и комментарий нашелся
     // дальше проверяем свойство likes. 
     let likeInfo = foundedComment.likes.find(
       (like) => like.authorId === userId
     );
+    console.log('likessssssss', likeInfo);
+    
     // Если массив пуст или отсуствует сведения о лайке от определенного автора, то вернется undefined
     if (!likeInfo) {
       const result = await this.commentRepository.updateLikes(
@@ -139,41 +151,41 @@ export class CommentService {
         return {
           code: HTTP_STATUS.NO_CONTENT_204,
         };
-      }
-
-      if (likeInfo.status !== likeStatus && likeStatus === LikeStatus.Like) {
-        await this.commentRepository.increaseLikes(commentId);        
-        if (likeInfo.status === LikeStatus.Dislike) {
-          await this.commentRepository.reduceDislikes(commentId)
-        }
-        likeInfo.status = likeStatus
-        return {
-          code: HTTP_STATUS.NO_CONTENT_204,
-        };
-      }
-
-      if (likeInfo.status !== likeStatus && likeStatus === LikeStatus.Dislike) {
-        await this.commentRepository.increaseDislikes(commentId);
-        if (likeInfo.status === LikeStatus.Like) {
-          await this.commentRepository.reduceLikes(commentId)
-        }
-        likeInfo.status = likeStatus
-        return {
-          code: HTTP_STATUS.NO_CONTENT_204,
-        };
-      }
-
-      if (likeInfo.status !== likeStatus && likeStatus === LikeStatus.None) {
-        if (likeInfo.status === LikeStatus.Like) {
-          await this.commentRepository.reduceLikes(commentId)
-        } else {
-          await this.commentRepository.reduceDislikes(commentId)
-        }
-        likeInfo.status = likeStatus
-        return {
-          code: HTTP_STATUS.NO_CONTENT_204,
-        };
-      }
+      } else {
+        if (likeStatus === LikeStatus.Like) { // первый случай - пришел лайк. тут два варианта
+          if (likeInfo.status === LikeStatus.None) {
+            await this.commentRepository.increaseLikes(commentId)
+          } else {
+            await this.commentRepository.increaseLikes(commentId)
+            await this.commentRepository.reduceDislikes(commentId)
+          } 
+          } else if (likeStatus === LikeStatus.Dislike) {
+            if (likeInfo.status === LikeStatus.None) {
+              await this.commentRepository.increaseDislikes(commentId)
+            } else {
+              await this.commentRepository.increaseDislikes(commentId)
+              await this.commentRepository.reduceLikes(commentId)
+            }
+          } else if (likeStatus === LikeStatus.None) { // пришел none, два варианта
+            if (likeInfo.status === LikeStatus.Like) {
+            await this.commentRepository.reduceLikes(commentId)
+          } else {
+            await this.commentRepository.reduceDislikes(commentId)
+          }
+          }           
+        } 
+        // дальше в любом случаев надо найти пользователя и изменить у него статус
+        const result = await CommentsModel.updateOne(
+          {
+            _id: commentId, 
+            'likes.authorId': userId
+          },
+          {
+            $set: {
+              'likes.$.status': likeStatus 
+            }
+          }
+        ); 
     }
     return {
       code: HTTP_STATUS.NO_CONTENT_204,
